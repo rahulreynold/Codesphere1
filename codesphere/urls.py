@@ -36,5 +36,6 @@ urlpatterns = [
     path('checkout/',views.CheckOutView.as_view(),name="checkout"),
     path('payment/verify/',views.PaymentVerification.as_view(),name="payment-verify"),
     path('orders/',views.MyoderView.as_view(),name="orders"),
+    path('reset/',views.PasswordResetView.as_view(),name='reset'),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

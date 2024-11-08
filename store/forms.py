@@ -22,3 +22,14 @@ class ProjectForm(forms.ModelForm):
         model=Project
 
         fields=["title","description","preview_image","price","files","tag_objects","thumbnail"]
+
+
+class PasswordResetForm(forms.Form):
+
+    username=forms.CharField()
+
+    email=forms.CharField()
+
+    password1=forms.CharField()
+
+    password2=forms.CharField()

@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.urls import reverse_lazy
-from store.forms import SignUpForm,SignInForm,UserProfileForm,ProjectForm
+from store.forms import SignUpForm,SignInForm,UserProfileForm,ProjectForm,PasswordResetForm
 from django.views.generic import View,FormView,CreateView,TemplateView
 from django.contrib.auth import authenticate,login,logout
 from store.models import Project,WishListItem,Order
@@ -12,6 +12,10 @@ from django.utils.decorators import method_decorator
 from django.core.mail import send_mail
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.models import User
+from decouple import config
+
+
 
 def send_email():
     send_mail(
@@ -261,9 +265,9 @@ class CheckOutView(View):
 
     def get(self,request,*args,**kwargs):
 
-        KEY_ID="rzp_test_hIMKNhJU9oHOAV"
+        KEY_ID=config('KEY_ID')
 
-        KEY_SECRET="PZyRgKWu7WyoiNfdBvkhdESB"
+        KEY_SECRET=config('KEY_SECRET')
 
         client=razorpay.Client(auth=(KEY_ID,KEY_SECRET))
 
@@ -297,9 +301,9 @@ class PaymentVerification(View):
 
         print(request.POST)
 
-        KEY_ID="rzp_test_hIMKNhJU9oHOAV"
+        KEY_ID=config('KEY_ID')
 
-        KEY_SECRET="PZyRgKWu7WyoiNfdBvkhdESB"
+        KEY_SECRET=config('KEY_SECRET')
 
         client=razorpay.Client(auth=(KEY_ID,KEY_SECRET))
 
@@ -325,6 +329,58 @@ class MyoderView(View):
         qs=Order.objects.filter(customer=request.user)
 
         return render(request,self.template_name,{"data":qs})
+    
+
+class PasswordResetView(View):
+
+    template_name="password_reset.html"
+
+    form_class=PasswordResetForm
+
+    def get(self,request,*args,**kwargs):
+
+        form_instance=self.form_class
+
+        return render(request,self.template_name,{"form":form_instance})
+    
+    def post(self,request,*args,**kwargs):
+
+        form_instance=self.form_class(request.POST)
+
+        if form_instance.is_valid():
+
+            username=form_instance.cleaned_data.get("username")
+
+            email=form_instance.cleaned_data.get("email")
+
+            password1=form_instance.cleaned_data.get("password1")
+
+            password2=form_instance.cleaned_data.get("password2")
+
+            print(username,email,password1,password2)
+
+            try:
+                assert password1==password2, "Passwords are not matching"
+                if user_object.check_password(password1):
+                    messages.error(request,"Password cannot be old password")
+                    return render(request, self.template_name, {"form": form_instance})
+
+                user_object=User.objects.get(username=username,email=email)
+                user_object.set_password(password2)
+                user_object.save()
+                print(user_object.password,"printing")
+
+                return redirect("signin")
+            
+            except Exception as e:
+                messages.error(request,f"{e}")
+                return render(request,self.template_name,{"form":form_instance})
+            
+        return render(request,self.template_name,{"form":form_instance})
+
+
+
+
     
 
         
